@@ -1,0 +1,7 @@
+version: '3.7'
+
+services:
+  cloudability-etl:
+    image: docker.pkg.github.com/informatica-na-presales-ops/cloudability-etl/cloudability-etl
+    build: .
+    init: true
