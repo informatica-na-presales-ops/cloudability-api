@@ -9,7 +9,7 @@ import sys
 import time
 import urllib.parse
 
-from typing import List
+from typing import Dict, List
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class Settings:
             return datetime.datetime.strptime(env_start_date, '%Y-%m-%d').date()
 
     @property
-    def vendor_accounts(self) -> List:
+    def vendor_accounts(self) -> List[Dict]:
         value = []
         raw = os.getenv('VENDOR_ACCOUNTS').split()
         for r in raw:
@@ -57,6 +57,22 @@ def clean_currency(value: str) -> decimal.Decimal:
     value = value.lstrip('$')
     value = value.replace(',', '')
     return decimal.Decimal(value)
+
+
+def parse_result_row(vendor, row):
+    return {
+        'vendor_id': vendor.get('vendor_id'),
+        'vendor_name': vendor.get('vendor_name'),
+        'resource_id': row.get('resource_identifier'),
+        'service_name': row.get('enhanced_service_name'),
+        'name': row.get('tag1'),
+        'owner_email': row.get('tag13'),
+        'date': row.get('date'),
+        'unblended_cost': clean_currency(row.get('unblended_cost')),
+        'adjusted_cost': clean_currency(row.get('adjusted_cost')),
+        'usage_hours': decimal.Decimal(row.get('usage_hours')),
+        'usage_quantity': decimal.Decimal(row.get('usage_quantity'))
+    }
 
 
 def get_data(settings: Settings):
@@ -100,19 +116,7 @@ def get_data(settings: Settings):
             results_response.raise_for_status()
 
             for result in results_response.json().get('results'):
-                yield {
-                    'vendor_id': vendor_id,
-                    'vendor_name': vendor.get('vendor_name'),
-                    'resource_id': result.get('resource_identifier'),
-                    'service_name': result.get('enhanced_service_name'),
-                    'name': result.get('tag1'),
-                    'owner_email': result.get('tag13'),
-                    'date': result.get('date'),
-                    'unblended_cost': clean_currency(result.get('unblended_cost')),
-                    'adjusted_cost': clean_currency(result.get('adjusted_cost')),
-                    'usage_hours': decimal.Decimal(result.get('usage_hours')),
-                    'usage_quantity': decimal.Decimal(result.get('usage_quantity'))
-                }
+                yield parse_result_row(vendor, result)
             start_date = end_date + datetime.timedelta(days=1)
 
 
