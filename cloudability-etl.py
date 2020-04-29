@@ -5,7 +5,6 @@ import logging
 import os
 import pathlib
 import requests
-import requests.auth
 import sys
 import time
 import urllib.parse
@@ -16,10 +15,6 @@ log = logging.getLogger(__name__)
 
 
 class Settings:
-    @property
-    def basic_auth(self) -> requests.auth.HTTPBasicAuth:
-        return requests.auth.HTTPBasicAuth(self.cloudability_auth_token, '')
-
     @property
     def cloudability_auth_token(self) -> str:
         return os.getenv('CLOUDABILITY_AUTH_TOKEN')
