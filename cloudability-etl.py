@@ -75,6 +75,20 @@ def parse_result_row(vendor: Dict, row: Dict) -> Dict:
     }
 
 
+def wait_for_job(settings: Settings, job_id: int) -> None:
+    base_url = 'https://app.cloudability.com/api/1/reporting/cost'
+    token = {'auth_token': settings.cloudability_auth_token}
+    job_status = 'requested'
+    while not job_status == 'finished':
+        time.sleep(5)
+        url = f'{base_url}/reports/{job_id}/state?{urllib.parse.urlencode(token)}'
+        state_response = requests.get(url)
+        state_response.raise_for_status()
+        state_data = state_response.json()
+        job_status = state_data.get('status')
+        log.info(f'Job {job_id} is {job_status}')
+
+
 def get_data(settings: Settings):
     s = requests.Session()
     base_url = 'https://app.cloudability.com/api/1/reporting/cost'
@@ -100,15 +114,7 @@ def get_data(settings: Settings):
             job_id = enqueue_data.get('id')
             log.info(f'Request submitted, job {job_id}')
 
-            job_status = 'requested'
-            while not job_status == 'finished':
-                time.sleep(10)
-                url = f'{base_url}/reports/{job_id}/state?{urllib.parse.urlencode(token_only)}'
-                state_response = s.get(url)
-                state_response.raise_for_status()
-                state_data = state_response.json()
-                job_status = state_data.get('status')
-                log.info(f'Job {job_id} is {job_status}')
+            wait_for_job(settings, job_id)
 
             log.info(f'Fetching results for job {job_id}')
             url = f'{base_url}/reports/{job_id}/results?{urllib.parse.urlencode(token_only)}'
