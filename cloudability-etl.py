@@ -39,7 +39,11 @@ class Settings:
 
     @property
     def start_date(self) -> datetime.date:
-        return datetime.datetime.strptime(os.getenv('START_DATE'), '%Y-%m-%d').date()
+        env_start_date = os.getenv('START_DATE')
+        if env_start_date is None:
+            return datetime.date.today() - datetime.timedelta(days=7)
+        else:
+            return datetime.datetime.strptime(env_start_date, '%Y-%m-%d').date()
 
     @property
     def vendor_account_id(self) -> str:
