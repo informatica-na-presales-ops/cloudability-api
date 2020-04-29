@@ -59,7 +59,7 @@ def clean_currency(value: str) -> decimal.Decimal:
     return decimal.Decimal(value)
 
 
-def parse_result_row(vendor, row):
+def parse_result_row(vendor: Dict, row: Dict) -> Dict:
     return {
         'vendor_id': vendor.get('vendor_id'),
         'vendor_name': vendor.get('vendor_name'),
