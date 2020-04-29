@@ -46,10 +46,6 @@ class Settings:
             return datetime.datetime.strptime(env_start_date, '%Y-%m-%d').date()
 
     @property
-    def vendor_account_id(self) -> str:
-        return os.getenv('VENDOR_ACCOUNT_ID')
-
-    @property
     def vendor_accounts(self) -> List:
         value = []
         raw = os.getenv('VENDOR_ACCOUNTS').split()
