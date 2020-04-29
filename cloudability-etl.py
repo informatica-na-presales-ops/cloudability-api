@@ -32,6 +32,10 @@ class Settings:
         return pathlib.Path(os.getenv('OUTPUT_FILE', '/data/cloudability-daily-spend.csv')).resolve()
 
     @property
+    def report_length_days(self) -> int:
+        return int(os.getenv('REPORT_LENGTH_DAYS', '7'))
+
+    @property
     def start_date(self) -> datetime.date:
         env_start_date = os.getenv('START_DATE')
         if env_start_date is None:
@@ -109,7 +113,7 @@ def get_data(settings: Settings):
         vendor_id = vendor.get('vendor_id')
         query['filters'] = f'tag13!=(not set),vendor_account_identifier=={vendor_id}'
         while start_date < datetime.date.today():
-            end_date = start_date + datetime.timedelta(days=7)
+            end_date = start_date + datetime.timedelta(days=settings.report_length_days)
             log.info(f'Requesting data from {start_date} to {end_date} for {vendor_id}')
             query['start_date'] = str(start_date)
             query['end_date'] = str(end_date)
