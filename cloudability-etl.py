@@ -1,4 +1,3 @@
-import calendar
 import csv
 import datetime
 import decimal
@@ -57,11 +56,6 @@ class Settings:
     @property
     def version(self) -> str:
         return os.getenv('APP_VERSION', 'unknown')
-
-
-def last_day_of_month(day: datetime.date) -> datetime.date:
-    month = calendar.monthrange(day.year, day.month)
-    return day.replace(day=month[1])
 
 
 def clean_currency(value: str) -> decimal.Decimal:
