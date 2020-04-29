@@ -84,7 +84,7 @@ def get_data(settings: Settings):
         'metrics': 'unblended_cost,adjusted_cost,usage_hours,usage_quantity'
     }
     for vendor in settings.vendor_accounts:
-        start_date = settings.start_date.replace(day=1)
+        start_date = settings.start_date
         vendor_id = vendor.get('vendor_id')
         query['filters'] = f'tag13!=(not set),vendor_account_identifier=={vendor_id}'
         while start_date < datetime.date.today():
