@@ -93,7 +93,14 @@ def wait_for_job(url: str) -> None:
     while not job_status == 'finished':
         time.sleep(5)
         state_response = requests.get(url)
-        state_response.raise_for_status()
+        try:
+            state_response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            if state_response.status_code == 502:
+                log.warning(f'502 response, trying again')
+                continue
+            else:
+                raise
         state_data = state_response.json()
         job_status = state_data.get('status')
         log.info(f'Job is {job_status}')
