@@ -15,6 +15,9 @@ log = logging.getLogger(__name__)
 
 
 class Settings:
+    def __init__(self):
+        self.session = requests.Session()
+
     @property
     def cloudability_auth_token(self) -> str:
         return os.getenv('CLOUDABILITY_AUTH_TOKEN')
