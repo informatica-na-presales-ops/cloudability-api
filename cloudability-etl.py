@@ -60,6 +60,23 @@ class Settings:
         return os.getenv('APP_VERSION', 'unknown')
 
 
+def get_url(settings: Settings, url: str) -> requests.Response:
+    response = None
+    waiting = True
+    while waiting:
+        response = settings.session.get(url)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            if response.status_code == 502:
+                log.warning('502 response, trying again')
+                continue
+            else:
+                raise
+        waiting = False
+    return response
+
+
 def clean_currency(value: str) -> decimal.Decimal:
     value = value.lstrip('$')
     value = value.replace(',', '')
@@ -82,35 +99,25 @@ def parse_result_row(vendor: Dict, row: Dict) -> Dict:
     }
 
 
-def submit_job(url: str) -> int:
-    enqueue_response = requests.get(url)
-    enqueue_response.raise_for_status()
+def submit_job(settings: Settings, url: str) -> int:
+    enqueue_response = get_url(settings, url)
     enqueue_data = enqueue_response.json()
     job_id = enqueue_data.get('id')
     log.info(f'Request submitted, job {job_id}')
     return job_id
 
 
-def wait_for_job(url: str) -> None:
+def wait_for_job(settings: Settings, url: str) -> None:
     job_status = 'requested'
     while not job_status == 'finished':
         time.sleep(5)
-        state_response = requests.get(url)
-        try:
-            state_response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            if state_response.status_code == 502:
-                log.warning(f'502 response, trying again')
-                continue
-            else:
-                raise
+        state_response = get_url(settings, url)
         state_data = state_response.json()
         job_status = state_data.get('status')
         log.info(f'Job is {job_status}')
 
 
 def get_data(settings: Settings):
-    s = requests.Session()
     base_url = 'https://app.cloudability.com/api/1/reporting/cost'
     token_only = {'auth_token': settings.cloudability_auth_token}
     query = {
@@ -128,14 +135,13 @@ def get_data(settings: Settings):
             query['start_date'] = str(start_date)
             query['end_date'] = str(end_date)
             url = f'{base_url}/enqueue?{urllib.parse.urlencode(query)}'
-            job_id = submit_job(url)
+            job_id = submit_job(settings, url)
             url = f'{base_url}/reports/{job_id}/state?{urllib.parse.urlencode(token_only)}'
-            wait_for_job(url)
+            wait_for_job(settings, url)
 
             log.info(f'Fetching results for job {job_id}')
             url = f'{base_url}/reports/{job_id}/results?{urllib.parse.urlencode(token_only)}'
-            results_response = s.get(url)
-            results_response.raise_for_status()
+            results_response = get_url(settings, url)
 
             for result in results_response.json().get('results'):
                 yield parse_result_row(vendor, result)
