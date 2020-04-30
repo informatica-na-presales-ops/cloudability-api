@@ -6,7 +6,7 @@ RUN /usr/local/bin/pip install --no-cache-dir --requirement /cloudability-etl/re
 
 COPY cloudability-etl.py /cloudability-etl/cloudability-etl.py
 
-ENV APP_VERSION="2020.4" \
+ENV APP_VERSION="2020.5" \
     PYTHONUNBUFFERED="1"
 
 ENTRYPOINT ["/usr/local/bin/python"]
