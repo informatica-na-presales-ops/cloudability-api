@@ -107,14 +107,15 @@ def submit_job(settings: Settings, url: str) -> int:
     return job_id
 
 
-def wait_for_job(settings: Settings, url: str) -> None:
+def wait_for_job(settings: Settings, url: str) -> str:
     job_status = 'requested'
-    while not job_status == 'finished':
+    while job_status not in ('errored', 'finished'):
         time.sleep(5)
         state_response = get_url(settings, url)
         state_data = state_response.json()
         job_status = state_data.get('status')
         log.info(f'Job is {job_status}')
+    return job_status
 
 
 def get_data(settings: Settings):
@@ -137,14 +138,16 @@ def get_data(settings: Settings):
             url = f'{base_url}/enqueue?{urllib.parse.urlencode(query)}'
             job_id = submit_job(settings, url)
             url = f'{base_url}/reports/{job_id}/state?{urllib.parse.urlencode(token_only)}'
-            wait_for_job(settings, url)
+            job_status = wait_for_job(settings, url)
+            if job_status == 'finished':
+                log.info(f'Fetching results for job {job_id}')
+                url = f'{base_url}/reports/{job_id}/results?{urllib.parse.urlencode(token_only)}'
+                results_response = get_url(settings, url)
 
-            log.info(f'Fetching results for job {job_id}')
-            url = f'{base_url}/reports/{job_id}/results?{urllib.parse.urlencode(token_only)}'
-            results_response = get_url(settings, url)
-
-            for result in results_response.json().get('results'):
-                yield parse_result_row(vendor, result)
+                for result in results_response.json().get('results'):
+                    yield parse_result_row(vendor, result)
+            else:
+                log.critical(f'Job {job_id} is {job_status}')
             start_date = end_date + datetime.timedelta(days=1)
 
 
@@ -166,6 +169,7 @@ def main():
         writer.writeheader()
         for row in get_data(settings):
             writer.writerow(row)
+    log.info('All done!')
 
 
 if __name__ == '__main__':
