@@ -1,0 +1,27 @@
+GET https://app.cloudability.com/api/1/reporting/cost?auth_token={{token}}
+
+###
+
+GET https://app.cloudability.com/api/1/reporting/cost/reports/36151/state?auth_token={{token}}
+
+###
+
+GET https://app.cloudability.com/api/1/reporting/cost/measures?auth_token={{token}}
+
+###
+
+GET https://app.cloudability.com/api/1/reporting/cost/run?auth_token={{token}}&dimensions=tag1,tag13,date,resource_identifier,enhanced_service_name&filters=tag13%21%3D%40%28not+set%29,vendor_account_identifier==3680-9902-9718&metrics=unblended_cost,adjusted_cost,usage_hours,usage_quantity&start_date=2020-03-29&end_date=2020-03-30
+###
+
+GET https://app.cloudability.com/api/1/reporting/cost/enqueue?auth_token={{token}}&dimensions=tag1,tag13,date,resource_identifier,enhanced_service_name&filters=tag13%21%3D%40%28not+set%29,vendor_account_identifier==3680-9902-9718&metrics=unblended_cost,adjusted_cost,usage_hours,usage_quantity&start_date=2020-03-29&end_date=2020-03-30
+
+> {% client.global.set('report-id', response.body.id) %}
+
+###
+
+GET https://app.cloudability.com/api/1/reporting/cost/reports/{{report-id}}/state?auth_token={{token}}
+
+###
+GET https://app.cloudability.com/api/1/reporting/cost/reports/{{report-id}}/results?auth_token={{token}}
+
+###
