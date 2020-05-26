@@ -84,13 +84,16 @@ def clean_currency(value: str) -> decimal.Decimal:
 
 
 def parse_result_row(vendor: Dict, row: Dict) -> Dict:
+    owner_email = row.get('tag13')
+    if owner_email in ('(not set)', '', None):
+        owner_email = '(unknown)'
     return {
         'vendor_id': vendor.get('vendor_id'),
         'vendor_name': vendor.get('vendor_name'),
         'resource_id': row.get('resource_identifier'),
         'service_name': row.get('enhanced_service_name'),
         'name': row.get('tag1'),
-        'owner_email': row.get('tag13'),
+        'owner_email': owner_email,
         'date': row.get('date'),
         'unblended_cost': clean_currency(row.get('unblended_cost')),
         'adjusted_cost': clean_currency(row.get('adjusted_cost')),
@@ -126,13 +129,14 @@ def get_data(settings: Settings):
         'dimensions': 'resource_identifier,enhanced_service_name,tag1,tag13,date',
         'metrics': 'unblended_cost,adjusted_cost,usage_hours,usage_quantity'
     }
-    for vendor in settings.vendor_accounts:
+    total = len(settings.vendor_accounts)
+    for i, vendor in enumerate(settings.vendor_accounts, start=1):
         start_date = settings.start_date
         vendor_id = vendor.get('vendor_id')
-        query['filters'] = f'tag13!=(not set),vendor_account_identifier=={vendor_id}'
+        query['filters'] = f'vendor_account_identifier=={vendor_id}'
         while start_date < datetime.date.today():
             end_date = start_date + datetime.timedelta(days=settings.report_length_days)
-            log.info(f'Requesting data from {start_date} to {end_date} for {vendor_id}')
+            log.info(f'Requesting data from {start_date} to {end_date} for {vendor_id} ({i} of {total})')
             query['start_date'] = str(start_date)
             query['end_date'] = str(end_date)
             url = f'{base_url}/enqueue?{urllib.parse.urlencode(query)}'
@@ -158,6 +162,9 @@ def main():
     if not settings.log_level == 'DEBUG':
         log.debug(f'Setting log level to {settings.log_level}')
     logging.getLogger().setLevel(settings.log_level)
+
+    plural = '' if len(settings.vendor_accounts) == 1 else 's'
+    log.info(f'Getting data for {len(settings.vendor_accounts)} vendor account{plural}')
 
     csv_field_names = [
         'vendor_id', 'vendor_name', 'resource_id', 'service_name', 'name', 'owner_email', 'date', 'unblended_cost',
