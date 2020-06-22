@@ -87,6 +87,9 @@ def parse_result_row(vendor: Dict, row: Dict) -> Dict:
     owner_email = row.get('tag13')
     if owner_email in ('(not set)', '', None):
         owner_email = '(unknown)'
+    application_env = row.get('tag8')
+    if application_env in ('(not set)', '', None):
+        application_env = '(unknown)'
     return {
         'vendor_id': vendor.get('vendor_id'),
         'vendor_name': vendor.get('vendor_name'),
@@ -98,7 +101,8 @@ def parse_result_row(vendor: Dict, row: Dict) -> Dict:
         'unblended_cost': clean_currency(row.get('unblended_cost')),
         'adjusted_cost': clean_currency(row.get('adjusted_cost')),
         'usage_hours': decimal.Decimal(row.get('usage_hours')),
-        'usage_quantity': decimal.Decimal(row.get('usage_quantity'))
+        'usage_quantity': decimal.Decimal(row.get('usage_quantity')),
+        'application_env': application_env
     }
 
 
@@ -126,7 +130,7 @@ def get_data(settings: Settings):
     token_only = {'auth_token': settings.cloudability_auth_token}
     query = {
         'auth_token': settings.cloudability_auth_token,
-        'dimensions': 'resource_identifier,enhanced_service_name,tag1,tag13,date',
+        'dimensions': 'resource_identifier,enhanced_service_name,tag1,tag8,tag13,date',
         'metrics': 'unblended_cost,adjusted_cost,usage_hours,usage_quantity'
     }
     total = len(settings.vendor_accounts)
@@ -168,7 +172,7 @@ def main():
 
     csv_field_names = [
         'vendor_id', 'vendor_name', 'resource_id', 'service_name', 'name', 'owner_email', 'date', 'unblended_cost',
-        'adjusted_cost', 'usage_hours', 'usage_quantity'
+        'adjusted_cost', 'usage_hours', 'usage_quantity', 'application_env'
     ]
     log.info(f'Writing data to {settings.output_file}')
     with settings.output_file.open('w', newline='') as f:
