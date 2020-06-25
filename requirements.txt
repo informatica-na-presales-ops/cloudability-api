@@ -1,1 +1,2 @@
+elastic-apm==5.7.0
 requests==2.24.0
