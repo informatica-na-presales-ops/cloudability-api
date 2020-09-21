@@ -6,7 +6,7 @@ RUN /usr/local/bin/pip install --no-cache-dir --requirement /cloudability-api/re
 
 COPY write-data-to-csv.py /cloudability-api/write-data-to-csv.py
 
-ENV APP_VERSION="2020.9" \
+ENV APP_VERSION="2020.10" \
     PYTHONUNBUFFERED="1"
 
 ENTRYPOINT ["/usr/local/bin/python"]
