@@ -2,6 +2,5 @@ version: '3.8'
 
 services:
   cloudability-etl:
-    image: docker.pkg.github.com/informatica-na-presales-ops/cloudability-etl/cloudability-etl
-    build: .
+    image: docker.pkg.github.com/informatica-na-presales-ops/cloudability-api/cloudability-api
     init: true

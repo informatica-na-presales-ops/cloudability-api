@@ -163,7 +163,7 @@ def get_data(settings: Settings):
 def main():
     settings = Settings()
     logging.basicConfig(format=settings.log_format, level='DEBUG', stream=sys.stdout)
-    log.debug(f'cloudability-etl {settings.version}')
+    log.debug(f'write-data-to-csv {settings.version}')
     if not settings.log_level == 'DEBUG':
         log.debug(f'Setting log level to {settings.log_level}')
     logging.getLogger().setLevel(settings.log_level)
