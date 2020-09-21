@@ -1,2 +1,2 @@
-elastic-apm==5.7.0
+elastic-apm==5.8.1
 requests==2.24.0
