@@ -2,5 +2,5 @@ version: '3.8'
 
 services:
   cloudability-api:
-    image: docker.pkg.github.com/informatica-na-presales-ops/cloudability-api/cloudability-api
+    image: ghcr.io/informatica-na-presales-ops/cloudability-api
     init: true
