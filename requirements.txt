@@ -1,4 +1,4 @@
 --extra-index-url https://alpine-wheels.github.io/index
 
-elastic-apm==5.10.1
+elastic-apm==6.0.0
 requests==2.25.1
