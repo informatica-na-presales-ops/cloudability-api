@@ -1,7 +1,6 @@
 import csv
 import datetime
 import decimal
-import elasticapm
 import logging
 import os
 import pathlib
@@ -183,8 +182,4 @@ def main():
 
 
 if __name__ == '__main__':
-    client = elasticapm.Client()
-    elasticapm.instrument()
-    client.begin_transaction('main')
     main()
-    client.end_transaction('main')
