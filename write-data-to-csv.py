@@ -9,7 +9,7 @@ import sys
 import time
 import urllib.parse
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('cloudability_api.get_daily_spend')
 
 
 class Settings:
@@ -160,7 +160,7 @@ def get_data(settings: Settings):
 def main():
     settings = Settings()
     logging.basicConfig(format=settings.log_format, level='DEBUG', stream=sys.stdout)
-    log.debug(f'write-data-to-csv {settings.version}')
+    log.debug(f'cloudability_api.get_daily_spend {settings.version}')
     if not settings.log_level == 'DEBUG':
         log.debug(f'Setting log level to {settings.log_level}')
     logging.getLogger().setLevel(settings.log_level)
