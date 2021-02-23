@@ -5,6 +5,7 @@ import logging
 import os
 import pathlib
 import requests
+import signal
 import sys
 import time
 import urllib.parse
@@ -181,5 +182,10 @@ def main():
     log.info('All done!')
 
 
+def handle_sigterm(_signal, _frame):
+    sys.exit()
+
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGTERM, handle_sigterm)
     main()
