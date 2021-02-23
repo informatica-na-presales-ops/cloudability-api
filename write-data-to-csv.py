@@ -10,8 +10,6 @@ import sys
 import time
 import urllib.parse
 
-from typing import Dict, List
-
 log = logging.getLogger(__name__)
 
 
@@ -48,7 +46,7 @@ class Settings:
             return datetime.datetime.strptime(env_start_date, '%Y-%m-%d').date()
 
     @property
-    def vendor_accounts(self) -> List[Dict]:
+    def vendor_accounts(self) -> list[dict]:
         value = []
         raw = os.getenv('VENDOR_ACCOUNTS').split()
         for r in raw:
@@ -84,7 +82,7 @@ def clean_currency(value: str) -> decimal.Decimal:
     return decimal.Decimal(value)
 
 
-def parse_result_row(vendor: Dict, row: Dict) -> Dict:
+def parse_result_row(vendor: dict, row: dict) -> dict:
     owner_email = row.get('tag13')
     if owner_email in ('(not set)', '', None):
         owner_email = '(unknown)'
