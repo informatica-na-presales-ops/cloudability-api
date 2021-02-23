@@ -1,4 +1,3 @@
-import csv
 import datetime
 import decimal
 import fort
@@ -14,6 +13,23 @@ import urllib.parse
 log = logging.getLogger('cloudability_api.get_daily_spend')
 
 
+class Database(fort.PostgresDatabase):
+    def add_record(self, params: dict):
+        sql = '''
+            insert into cl_daily_spend (
+                owner_email, date, adjusted_cost, usage_hours, resource_id, service_name,
+                name, unblended_cost, usage_quantity, vendor_id, vendor_name, application_env
+            ) values (
+                %(owner_email)s, %(date)s, %(adjusted_cost)s, %(usage_hours)s, %(resource_id)s, %(service_name)s,
+                %(name)s, %(unblended_cost)s, %(usage_quantity)s, %(vendor_id)s, %(vendor_name)s, %(application_env)s
+            ) on conflict (owner_email, date, resource_id, name) do update set
+                adjusted_cost = %(adjusted_cost)s, usage_hours = %(usage_hours)s, service_name = %(service_name)s,
+                unblended_cost = %(unblended_cost)s, usage_quantity = %(usage_quantity)s, vendor_id = %(vendor_id)s,
+                vendor_name = %(vendor_name)s, application_env = %(application_env)s
+        '''
+        self.u(sql, params)
+
+
 class Settings:
     def __init__(self):
         self.session = requests.Session()
@@ -23,16 +39,16 @@ class Settings:
         return os.getenv('CLOUDABILITY_AUTH_TOKEN')
 
     @property
+    def db(self) -> str:
+        return os.getenv('DB')
+
+    @property
     def log_format(self) -> str:
         return os.getenv('LOG_FORMAT', '%(levelname)s [%(name)s] %(message)s')
 
     @property
     def log_level(self) -> str:
         return os.getenv('LOG_LEVEL', 'INFO')
-
-    @property
-    def output_file(self) -> pathlib.Path:
-        return pathlib.Path(os.getenv('OUTPUT_FILE', '/data/cloudability-daily-spend.csv')).resolve()
 
     @property
     def report_length_days(self) -> int:
@@ -170,16 +186,11 @@ def main():
     plural = '' if len(settings.vendor_accounts) == 1 else 's'
     log.info(f'Getting data for {len(settings.vendor_accounts)} vendor account{plural}')
 
-    csv_field_names = [
-        'vendor_id', 'vendor_name', 'resource_id', 'service_name', 'name', 'owner_email', 'date', 'unblended_cost',
-        'adjusted_cost', 'usage_hours', 'usage_quantity', 'application_env'
-    ]
+    db = Database(settings.db)
+
     log.info(f'Writing data to {settings.output_file}')
-    with settings.output_file.open('w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=csv_field_names)
-        writer.writeheader()
-        for row in get_data(settings):
-            writer.writerow(row)
+    for row in get_data(settings):
+        db.add_record(row)
     log.info('All done!')
 
 
