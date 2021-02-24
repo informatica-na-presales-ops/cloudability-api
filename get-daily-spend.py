@@ -187,10 +187,9 @@ def main():
     log.info(f'Getting data for {len(settings.vendor_accounts)} vendor account{plural}')
 
     db = Database(settings.db)
-
-    log.info(f'Writing data to {settings.output_file}')
     for row in get_data(settings):
         db.add_record(row)
+
     log.info('All done!')
 
 
