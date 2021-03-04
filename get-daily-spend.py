@@ -196,8 +196,9 @@ def get_data(settings: Settings):
                 log.info(f'Fetching results for job {job_id}')
                 url = f'{base_url}/reports/{job_id}/results?{urllib.parse.urlencode(token_only)}'
                 results_response = get_url(settings, url)
-
-                for result in results_response.json().get('results'):
+                result_rows = results_response.json().get('results')
+                log.info(f'Found {len(result_rows)} records')
+                for result in result_rows:
                     yield parse_result_row(vendor, result)
             else:
                 log.critical(f'Job {job_id} is {job_status}')
