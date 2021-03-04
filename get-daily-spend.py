@@ -3,7 +3,6 @@ import decimal
 import fort
 import logging
 import os
-import pathlib
 import requests
 import signal
 import sys
