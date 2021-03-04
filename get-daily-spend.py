@@ -62,6 +62,14 @@ class Settings:
         return os.getenv('LOG_LEVEL', 'INFO')
 
     @property
+    def other_log_levels(self) -> dict:
+        result = {}
+        for log_spec in os.getenv('OTHER_LOG_LEVELS', '').split():
+            logger, _, level = log_spec.partition(':')
+            result[logger] = level
+        return result
+
+    @property
     def report_length_days(self) -> int:
         return int(os.getenv('REPORT_LENGTH_DAYS', '7'))
 
@@ -216,6 +224,10 @@ def main():
     if not settings.log_level == 'DEBUG':
         log.debug(f'Setting log level to {settings.log_level}')
     logging.getLogger().setLevel(settings.log_level)
+
+    for logger, level in settings.other_log_levels.items():
+        log.debug(f'Setting log level for {logger} to {level}')
+        logging.getLogger(logger).setLevel(level)
 
     if settings.run_and_exit:
         main_job()
