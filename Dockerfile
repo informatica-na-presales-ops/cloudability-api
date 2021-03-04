@@ -7,7 +7,7 @@ RUN /usr/local/bin/pip install --no-cache-dir --requirement /cloudability-api/re
 
 COPY get-daily-spend.py /cloudability-api/get-daily-spend.py
 
-ENV APP_VERSION="2020.10" \
+ENV APP_VERSION="2021.1" \
     PYTHONUNBUFFERED="1"
 
 ENTRYPOINT ["/usr/local/bin/python"]
