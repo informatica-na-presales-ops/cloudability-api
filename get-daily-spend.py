@@ -1,3 +1,4 @@
+import apscheduler.schedulers.blocking
 import datetime
 import decimal
 import fort
@@ -33,6 +34,17 @@ class Settings:
     def __init__(self):
         self.session = requests.Session()
 
+    @staticmethod
+    def as_bool(value: str) -> bool:
+        return value.lower() in ('true', 'yes', 'on', '1')
+
+    @staticmethod
+    def as_int(value: str, default: int) -> int:
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return default
+
     @property
     def cloudability_auth_token(self) -> str:
         return os.getenv('CLOUDABILITY_AUTH_TOKEN')
@@ -52,6 +64,16 @@ class Settings:
     @property
     def report_length_days(self) -> int:
         return int(os.getenv('REPORT_LENGTH_DAYS', '7'))
+
+    @property
+    def run_and_exit(self) -> bool:
+        return self.as_bool(os.getenv('RUN_AND_EXIT', 'false'))
+
+    @property
+    def run_interval(self) -> int:
+        # number of minutes between runs
+        # default run interval is 24 hours
+        return self.as_int(os.getenv('RUN_INTERVAL'), 60 * 24)
 
     @property
     def start_date(self) -> datetime.date:
@@ -174,13 +196,8 @@ def get_data(settings: Settings):
             start_date = end_date + datetime.timedelta(days=1)
 
 
-def main():
+def main_job():
     settings = Settings()
-    logging.basicConfig(format=settings.log_format, level='DEBUG', stream=sys.stdout)
-    log.debug(f'cloudability_api.get_daily_spend {settings.version}')
-    if not settings.log_level == 'DEBUG':
-        log.debug(f'Setting log level to {settings.log_level}')
-    logging.getLogger().setLevel(settings.log_level)
 
     plural = '' if len(settings.vendor_accounts) == 1 else 's'
     log.info(f'Getting data for {len(settings.vendor_accounts)} vendor account{plural}')
@@ -190,6 +207,24 @@ def main():
         db.add_record(row)
 
     log.info('All done!')
+
+
+def main():
+    settings = Settings()
+    logging.basicConfig(format=settings.log_format, level='DEBUG', stream=sys.stdout)
+    log.debug(f'{log.name} {settings.version}')
+    if not settings.log_level == 'DEBUG':
+        log.debug(f'Setting log level to {settings.log_level}')
+    logging.getLogger().setLevel(settings.log_level)
+
+    if settings.run_and_exit:
+        main_job()
+        return
+
+    scheduler = apscheduler.schedulers.blocking.BlockingScheduler()
+    scheduler.add_job(main_job, 'interval', minutes=settings.run_interval)
+    scheduler.add_job(main_job)
+    scheduler.start()
 
 
 def handle_sigterm(_signal, _frame):
